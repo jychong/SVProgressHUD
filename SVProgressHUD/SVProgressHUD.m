@@ -14,6 +14,17 @@
 #import "SVProgressHUD.h"
 #import <QuartzCore/QuartzCore.h>
 
+#define kDefaultDismissAnimationDuration (0.5f)
+#define kDefaultDismissDelayDuration     (0.2f)
+
+#define kDefaultHudWidth         (100.0f)
+#define kDefaultHudHeight        (100.0f)
+#define kDefaultHudImgWidth      (28.0f)
+#define kDefaultHudImgHeight     (28.0f)
+#define kDefaultHudSpinnerWidth  (37.0f)
+#define kDefaultHudSpinnerHeight (37.0f)
+#define kDefaultHudCornerRadius  (10.0f)
+
 NSString * const SVProgressHUDDidReceiveTouchEventNotification = @"SVProgressHUDDidReceiveTouchEventNotification";
 NSString * const SVProgressHUDWillDisappearNotification = @"SVProgressHUDWillDisappearNotification";
 NSString * const SVProgressHUDDidDisappearNotification = @"SVProgressHUDDidDisappearNotification";
@@ -186,14 +197,15 @@ CGFloat SVProgressHUDRingThickness = 6;
             CGFloat locations[2] = {0.0f, 1.0f};
             CGFloat colors[8] = {0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.0f,0.75f}; 
             CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-            CGGradientRef gradient = CGGradientCreateWithColorComponents(colorSpace, colors, locations, locationsCount);
+            CGGradientRef gradient =
+                CGGradientCreateWithColorComponents(colorSpace, colors, locations, locationsCount);
             CGColorSpaceRelease(colorSpace);
             
             CGPoint center = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
             float radius = MIN(self.bounds.size.width , self.bounds.size.height) ;
-            CGContextDrawRadialGradient (context, gradient, center, 0, center, radius, kCGGradientDrawsAfterEndLocation);
+            CGContextDrawRadialGradient(context, gradient, center, 0, center,
+                                        radius, kCGGradientDrawsAfterEndLocation);
             CGGradientRelease(gradient);
-            
             break;
         }
     }
@@ -201,8 +213,8 @@ CGFloat SVProgressHUDRingThickness = 6;
 
 - (void)updatePosition {
 	
-    CGFloat hudWidth = 100;
-    CGFloat hudHeight = 100;
+    CGFloat hudWidth = kDefaultHudWidth;
+    CGFloat hudHeight = kDefaultHudHeight;
     CGFloat stringWidth = 0;
     CGFloat stringHeight = 0;
     CGRect labelRect = CGRectZero;
@@ -225,7 +237,7 @@ CGFloat SVProgressHUDRingThickness = 6;
         
         CGFloat labelRectY = imageUsed ? 66 : 9;
         
-        if(hudHeight > 100) {
+        if(hudHeight > kDefaultHudWidth) {
             labelRect = CGRectMake(12, labelRectY, hudWidth, stringHeight);
             hudWidth+=24;
         } else {
@@ -393,7 +405,8 @@ CGFloat SVProgressHUDRingThickness = 6;
 }
 
 - (void)overlayViewDidReceiveTouchEvent {
-    [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDDidReceiveTouchEventNotification object:nil];
+    [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDDidReceiveTouchEventNotification
+                                                        object:nil];
 }
 
 #pragma mark - Master show/dismiss methods
@@ -504,11 +517,11 @@ CGFloat SVProgressHUDRingThickness = 6;
     [[NSNotificationCenter defaultCenter] postNotificationName:SVProgressHUDWillDisappearNotification
                                                         object:nil
                                                       userInfo:notificationUserInfo];
-    
+
     self.activityCount = 0;
-     SVProgressHUD *__weak weakSelf=self;
-    [UIView animateWithDuration:0.15
-                          delay:0
+    SVProgressHUD *__weak weakSelf=self;
+    [UIView animateWithDuration:kDefaultDismissAnimationDuration
+                          delay:kDefaultDismissDelayDuration
                         options:UIViewAnimationCurveEaseIn | UIViewAnimationOptionAllowUserInteraction
                      animations:^{
                          weakSelf.hudView.transform = CGAffineTransformScale(self.hudView.transform, 0.8, 0.8);
@@ -650,7 +663,7 @@ CGFloat SVProgressHUDRingThickness = 6;
 - (UIView *)hudView {
     if(!hudView) {
         hudView = [[UIView alloc] initWithFrame:CGRectZero];
-        hudView.layer.cornerRadius = 10;
+        hudView.layer.cornerRadius = kDefaultHudCornerRadius;
         hudView.layer.masksToBounds = YES;
         
         // UIAppearance is used when iOS >= 5.0
@@ -693,7 +706,7 @@ CGFloat SVProgressHUDRingThickness = 6;
 
 - (UIImageView *)imageView {
     if (imageView == nil)
-        imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, 28, 28)];
+        imageView = [[UIImageView alloc] initWithFrame:CGRectMake(0, 0, kDefaultHudImgWidth, kDefaultHudImgHeight)];
     
     if(!imageView.superview)
         [self.hudView addSubview:imageView];
@@ -705,7 +718,7 @@ CGFloat SVProgressHUDRingThickness = 6;
     if (spinnerView == nil) {
         spinnerView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
 		spinnerView.hidesWhenStopped = YES;
-		spinnerView.bounds = CGRectMake(0, 0, 37, 37);
+		spinnerView.bounds = CGRectMake(0, 0, kDefaultHudSpinnerWidth, kDefaultHudSpinnerHeight);
         
         if([spinnerView respondsToSelector:@selector(setColor:)]) // setColor is iOS 5+
             spinnerView.color = self.hudForegroundColor;
